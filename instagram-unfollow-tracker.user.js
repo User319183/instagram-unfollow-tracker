@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Instagram Unfollow Tracker
 // @namespace    oryvo.igtracker
-// @version      1.1
+// @version      1.2
 // @description  Tracks unfollowers via live GraphQL hash capture + API. Works from any page.
 // @author       Sathvik Sridar (github.com/User319183) — built with Oryvo (oryvo.ai) by Covalence Systems Inc.
 // @match        https://www.instagram.com/*
@@ -25,7 +25,7 @@
     followers: "c76146de99bb02f6415203be841dd25a"
   };
 
-  var currentTarget = { id: null, username: null };
+  var currentTarget = { id: null, username: null, isPrivate: false, isFollowedByViewer: false };
   var hashMessageShown = false;
 
   function loadData(userId) {
@@ -657,14 +657,17 @@
       targetBtn.textContent = "...";
       try {
         var info = await resolveUsername(username);
-        if (info.isPrivate && !info.isFollowedByViewer) {
-          toast("@" + info.username + " is private. Cannot view.");
+        var selfId = getCookie("ds_user_id");
+        if (info.isPrivate && info.id !== selfId) {
+          toast("@" + info.username + " is private. Instagram restricts follower/following list access to the account owner, even if you follow them.");
           targetBtn.disabled = false;
           targetBtn.textContent = "Go";
           return;
         }
         currentTarget.id = info.id;
         currentTarget.username = info.username;
+        currentTarget.isPrivate = info.isPrivate;
+        currentTarget.isFollowedByViewer = info.isFollowedByViewer;
         targetCurrent.textContent = "Viewing: @" + info.username + (info.isPrivate ? " (private)" : "");
         addRecent(info.username, info.id);
         toast("Resolved @" + info.username + " — ready to scan");
@@ -682,6 +685,10 @@
     async function runScan() {
       var userId = currentTarget.id;
       var targetUsername = currentTarget.username;
+      var selfId = getCookie("ds_user_id");
+      if (currentTarget.isPrivate && currentTarget.id !== selfId) {
+        throw new Error("@" + targetUsername + " is a private account. Instagram restricts follower/following list access to the account owner, even if you follow them.");
+      }
       if (!userId) {
         var selfId = getCookie("ds_user_id");
         if (!selfId) throw new Error("Not logged in to Instagram.");
