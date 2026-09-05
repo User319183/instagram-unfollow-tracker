@@ -73,7 +73,7 @@ document-start hook
 
 ## Security & Privacy
 
-- All data stays in your browser's `localStorage`. Nothing is sent anywhere.
+- All data stays in your browser's `sessionStorage` (per-account keys). Nothing is sent anywhere.
 - The script only talks to `instagram.com` — the same domain you're already authenticated to.
 - No credentials are extracted or transmitted. The `ds_user_id` cookie is read in-place and only used for API calls to Instagram.
 - Open source. Read every line. There is no obfuscation.
@@ -84,6 +84,26 @@ document-start hook
 - Instagram can rotate query hashes at any time. The live-capture mechanism handles this, but the hardcoded fallback may age out after 12-24 months without the script running.
 - Large accounts (10,000+ following) may take longer due to pagination pacing. The timeout safety net is 50 pages.
 - Not a mobile app. Browser-only.
+
+## Changelog
+
+### v1.1
+
+- Fixed user lookup failing with "429 / blocked" error by adding a search API fallback (`searchUserFallback`) that hits Instagram's topsearch endpoint when the profile API is rate-limited.
+- Rewrote HTML profile scraper (`scrapeProfilePage`) to handle modern Instagram pages that no longer include `window._sharedData` or `window.__initialDataLoaded`. Now extracts from `window.__additionalDataLoaded`, structured `ld+json` tags, and more robust script scanning.
+- Added jittered delays between paginated API calls and a 1200ms delay before fallback scraping to reduce rate-limit triggering.
+- Switched to `sessionStorage` (per-account keys) instead of `localStorage` to prevent data leaking across Instagram accounts.
+- Added recent-user lookup history for quick re-scanning.
+- Version reset to 1.1 to reflect public release numbering (second public update).
+
+### v1.0
+
+- Initial public release.
+- Live GraphQL hash capture via `fetch` interception.
+- Self-healing fallback chain with hardcoded hashes.
+- Glass-panel UI with toast notifications, dark stats cards, and floating action button.
+- Auto-scan on load with 10-minute cooldown.
+- Direct API pagination for following and followers lists.
 
 ## Disclaimer
 
