@@ -1,4 +1,4 @@
-# [ TEMPORARILY PATCHED -- CURRENTLY GETS YOU LOCKED OUT ] Instagram Unfollow Tracker
+# Instagram Unfollow Tracker
 
 A Tampermonkey userscript that surfaces who unfollowed you on Instagram — powered by live GraphQL hash capture so it survives IG's backend rotations without manual updates.
 
